@@ -6,11 +6,15 @@ The script will exit with status 0 on known error that are turned into rust erro
 
 import sys
 
-import json
+import builtins
 import os
 import platform
 import struct
 import sysconfig
+
+
+def print(thing):
+    builtins.print(str(thing).replace("'", '"'))
 
 
 def format_full_version(info):
@@ -23,13 +27,11 @@ def format_full_version(info):
 
 if sys.version_info[0] < 3:
     print(
-        json.dumps(
-            {
-                "result": "error",
-                "kind": "unsupported_python_version",
-                "python_version": format_full_version(sys.version_info),
-            }
-        )
+        {
+            "result": "error",
+            "kind": "unsupported_python_version",
+            "python_version": format_full_version(sys.version_info),
+        }
     )
     sys.exit(0)
 
@@ -445,13 +447,11 @@ def get_operating_system_and_architecture():
     if operating_system == "linux":
         if sys.version_info < (3, 7):
             print(
-                json.dumps(
-                    {
-                        "result": "error",
-                        "kind": "unsupported_python_version",
-                        "python_version": format_full_version(sys.version_info),
-                    }
-                )
+                {
+                    "result": "error",
+                    "kind": "unsupported_python_version",
+                    "python_version": format_full_version(sys.version_info),
+                }
             )
             sys.exit(0)
 
@@ -476,7 +476,7 @@ def get_operating_system_and_architecture():
                 "minor": glibc_version[1],
             }
         else:
-            print(json.dumps({"result": "error", "kind": "libc_not_found"}))
+            print({"result": "error", "kind": "libc_not_found"})
             sys.exit(0)
     elif operating_system == "win":
         operating_system = {
@@ -516,13 +516,11 @@ def get_operating_system_and_architecture():
         }
     else:
         print(
-            json.dumps(
-                {
-                    "result": "error",
-                    "kind": "unknown_operating_system",
-                    "operating_system": operating_system,
-                }
-            )
+            {
+                "result": "error",
+                "kind": "unknown_operating_system",
+                "operating_system": operating_system,
+            }
         )
         sys.exit(0)
     return {"os": operating_system, "arch": architecture}
@@ -557,12 +555,12 @@ def main() -> None:
         "platform": get_operating_system_and_architecture(),
         # The `t` abiflag for freethreading Python.
         # https://peps.python.org/pep-0703/#build-configuration-changes
-        "gil_disabled": bool(sysconfig.get_config_var("Py_GIL_DISABLED")),
+        "gil_disabled": int(bool(sysconfig.get_config_var("Py_GIL_DISABLED"))),
         # Determine if the interpreter is 32-bit or 64-bit.
         # https://github.com/python/cpython/blob/b228655c227b2ca298a8ffac44d14ce3d22f6faa/Lib/venv/__init__.py#L136
         "pointer_size": "64" if sys.maxsize > 2**32 else "32",
     }
-    print(json.dumps(interpreter_info))
+    print(interpreter_info)
 
 
 if __name__ == "__main__":
